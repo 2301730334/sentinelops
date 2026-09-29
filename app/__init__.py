@@ -24,6 +24,8 @@ def create_app(config_name: str | None = None, overrides: dict | None = None) ->
     ensure_secret_key(app)
     _ensure_sqlite_dir(app)
 
+    from . import models  # noqa: F401  (register models with SQLAlchemy/Alembic)
+
     db.init_app(app)
     migrate.init_app(app, db)
 
