@@ -1,0 +1,9 @@
+{% macro field(name, label, type="text", value="", errors={}, autocomplete=None) -%}
+<div class="mb-3">
+  <label for="{{ name }}" class="form-label">{{ label }}</label>
+  <input type="{{ type }}" id="{{ name }}" name="{{ name }}" value="{{ value }}" required
+         class="form-control{% if errors.get(name) %} is-invalid{% endif %}"
+         {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}>
+  {% if errors.get(name) %}<div class="invalid-feedback">{{ errors[name] }}</div>{% endif %}
+</div>
+{%- endmacro %}

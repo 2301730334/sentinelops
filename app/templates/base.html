@@ -19,8 +19,23 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="nav">
-        <ul class="navbar-nav ms-auto">
-          {% block nav_items %}{% endblock %}
+        <ul class="navbar-nav ms-auto align-items-md-center gap-md-1">
+          {% block nav_items %}
+          {% if current_user.is_authenticated %}
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('scans.index') }}">My scans</a></li>
+          <li class="nav-item"><a class="nav-link me-md-3" href="{{ url_for('scans.upload') }}">New scan</a></li>
+          <li class="nav-item"><span class="navbar-text me-md-2 small">Signed in as <strong>{{ current_user.username }}</strong></span></li>
+          <li class="nav-item">
+            <form method="post" action="{{ url_for('auth.logout') }}" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-outline-light btn-sm my-2 my-md-0" type="submit">Sign out</button>
+            </form>
+          </li>
+          {% else %}
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Sign in</a></li>
+          <li class="nav-item"><a class="btn btn-primary btn-sm ms-md-2 my-2 my-md-0" href="{{ url_for('auth.register') }}">Register</a></li>
+          {% endif %}
+          {% endblock %}
         </ul>
       </div>
     </div>

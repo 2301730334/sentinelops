@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}New scan{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <h1 class="h3 mb-3">New scan</h1>
+    {% if error and error.details and error.details.errors %}
+    <div class="alert alert-danger small">
+      <ul class="mb-0">{% for e in error.details.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <form method="post" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="mb-3">
+            <label for="file" class="form-label">Traffic CSV</label>
+            <input class="form-control" type="file" id="file" name="file" accept=".csv,text/csv" required>
+            <div class="form-text">Max {{ config.MAX_UPLOAD_MB }} MB and {{ "{:,}".format(config.MAX_CSV_ROWS) }} rows.</div>
+          </div>
+          <div class="mb-3">
+            <label for="name" class="form-label">Name <span class="text-body-secondary small">(optional)</span></label>
+            <input class="form-control" id="name" name="name" maxlength="255" value="{{ form.get('name', '') }}"
+                   placeholder="Defaults to the file name">
+          </div>
+          <div class="mb-3">
+            <label for="notes" class="form-label">Notes <span class="text-body-secondary small">(optional)</span></label>
+            <textarea class="form-control" id="notes" name="notes" rows="2" maxlength="2000">{{ form.get('notes', '') }}</textarea>
+          </div>
+          <button class="btn btn-primary" type="submit">Upload &amp; scan</button>
+          <a href="{{ url_for('scans.index') }}" class="btn btn-link">Cancel</a>
+        </form>
+      </div>
+    </div>
+    <div class="card mt-4 border-0 bg-transparent">
+      <div class="card-body px-0 small text-body-secondary">
+        <p class="mb-1"><strong>Required columns</strong> (Zeek conn.log / IoT-23 names, any order, extra columns ignored):</p>
+        <p><code>duration, orig_bytes, resp_bytes, orig_pkts, resp_pkts, proto, conn_state</code>. A <code>-</code> means an empty value.</p>
+        <a href="{{ url_for('static', filename='samples/sample_iot23.csv') }}" download>Download a sample CSV</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

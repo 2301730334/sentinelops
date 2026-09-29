@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% from "_pagination.html" import render as paginate %}
+{% from "scans/_status.html" import status_badge %}
+{% block title %}My scans{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+  <h1 class="h3 mb-0">My scans</h1>
+  <a href="{{ url_for('scans.upload') }}" class="btn btn-primary">+ New scan</a>
+</div>
+
+<div class="row g-3 mb-4">
+  {% for label, value, cls in [("Scans", totals.scans, ""), ("Connections analysed", totals.rows, ""), ("Flagged malicious", totals.malicious, "text-danger")] %}
+  <div class="col-12 col-sm-4">
+    <div class="card stat-card shadow-sm h-100"><div class="card-body">
+      <div class="text-body-secondary small">{{ label }}</div>
+      <div class="display-6 {{ cls }}">{{ "{:,}".format(value) }}</div>
+    </div></div>
+  </div>
+  {% endfor %}
+</div>
+
+{% if pagination.items %}
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr><th>Name</th><th>Uploaded</th><th class="text-end">Rows</th><th class="text-end">Malicious</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody>
+      {% for scan in pagination.items %}
+        <tr>
+          <td><a href="{{ url_for('scans.detail', scan_id=scan.id) }}" class="fw-medium">{{ scan.filename }}</a>
+            {% if scan.notes %}<div class="small text-body-secondary text-truncate" style="max-width: 22rem">{{ scan.notes }}</div>{% endif %}</td>
+          <td class="small text-nowrap">{{ scan.created_at.strftime("%Y-%m-%d %H:%M") }} UTC</td>
+          <td class="text-end">{{ scan.total_rows }}</td>
+          <td class="text-end">{{ scan.malicious_count }} <span class="small text-body-secondary">({{ "%.0f"|format(scan.malicious_ratio * 100) }}%)</span></td>
+          <td>{{ status_badge(scan.status) }}</td>
+          <td class="text-end"><a href="{{ url_for('scans.detail', scan_id=scan.id) }}" class="btn btn-sm btn-outline-secondary">View</a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="mt-3">{{ paginate(pagination, 'scans.index') }}</div>
+{% else %}
+<div class="text-center py-5 border rounded bg-body">
+  <p class="lead mb-1">No scans yet</p>
+  <p class="text-body-secondary">Upload a CSV of connection records to get started.</p>
+  <a href="{{ url_for('scans.upload') }}" class="btn btn-primary">Upload a CSV</a>
+</div>
+{% endif %}
+{% endblock %}
