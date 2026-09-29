@@ -7,6 +7,7 @@ import threading
 
 from flask import Flask, current_app
 
+from ..metrics import record_model_loaded
 from .base import Predictor
 from .sklearn_predictor import ModelUnavailableError, SklearnPredictor
 
@@ -36,6 +37,8 @@ def get_predictor(app: Flask | None = None) -> Predictor:
             if predictor is None:
                 predictor = load_predictor(app)
                 app.extensions[_KEY] = predictor
+                with app.app_context():
+                    record_model_loaded(predictor.version)
     return predictor
 
 
@@ -45,3 +48,5 @@ def set_predictor(app: Flask, predictor: Predictor | None) -> None:
         app.extensions.pop(_KEY, None)
     else:
         app.extensions[_KEY] = predictor
+        with app.app_context():
+            record_model_loaded(predictor.version)
