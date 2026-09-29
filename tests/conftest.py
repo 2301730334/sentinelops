@@ -4,9 +4,21 @@ from app import create_app
 from app.extensions import db as _db
 
 
+@pytest.fixture(scope="session")
+def stub_predictor():
+    """Train the synthetic stub model once for the whole test session."""
+    from app.ml import SklearnPredictor
+    from app.ml.stub import train_stub_model
+
+    return SklearnPredictor(train_stub_model(n=300, seed=1), version="test-stub")
+
+
 @pytest.fixture()
-def app():
+def app(stub_predictor):
+    from app.ml import set_predictor
+
     app = create_app("testing")
+    set_predictor(app, stub_predictor)
     with app.app_context():
         _db.create_all()
         yield app
