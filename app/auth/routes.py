@@ -6,7 +6,7 @@ from ..security import is_safe_redirect
 from . import bp
 
 # Where signed-in users land.
-HOME_ENDPOINT = "main.index"
+HOME_ENDPOINT = "scans.index"
 from .services import authenticate, register_user
 
 

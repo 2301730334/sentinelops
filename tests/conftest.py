@@ -57,3 +57,19 @@ def login(client, username="alice", password=PASSWORD):
 def auth_client(client, user):
     login(client)
     return client
+
+
+HEADER = "duration,orig_bytes,resp_bytes,orig_pkts,resp_pkts,proto,conn_state"
+BENIGN_ROW = "4.2,820,15400,9,18,tcp,SF"
+SCAN_ROW = "-,-,-,1,0,tcp,S0"
+
+
+def make_csv(rows=(BENIGN_ROW, SCAN_ROW), header=HEADER) -> bytes:
+    return ("\n".join([header, *rows]) + "\n").encode()
+
+
+def upload(client, data=None, filename="traffic.csv", url="/scans/upload", **fields):
+    import io
+
+    payload = {"file": (io.BytesIO(make_csv() if data is None else data), filename), **fields}
+    return client.post(url, data=payload, content_type="multipart/form-data")

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from flask import current_app
 from flask_login import UserMixin
 from sqlalchemy import JSON, ForeignKey, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -29,7 +30,8 @@ class User(UserMixin, db.Model):
     )
 
     def set_password(self, password: str) -> None:
-        self.password_hash = generate_password_hash(password)
+        method = current_app.config.get("PASSWORD_HASH_METHOD", "scrypt")
+        self.password_hash = generate_password_hash(password, method=method)
 
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)

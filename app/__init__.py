@@ -46,9 +46,11 @@ def create_app(config_name: str | None = None, overrides: dict | None = None) ->
 def register_blueprints(app: Flask) -> None:
     from .auth import bp as auth_bp
     from .main import bp as main_bp
+    from .scans import bp as scans_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(scans_bp)
 
 
 def _init_login(app: Flask) -> None:

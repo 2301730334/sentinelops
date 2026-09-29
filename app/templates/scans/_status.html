@@ -1,0 +1,7 @@
+{% macro status_badge(status) -%}
+{% set cls = {"completed": "success", "failed": "danger", "processing": "secondary"}.get(status, "secondary") %}
+<span class="badge text-bg-{{ cls }}">{{ status }}</span>
+{%- endmacro %}
+{% macro label_badge(label) -%}
+<span class="badge {{ 'text-bg-danger' if label == 'malicious' else 'text-bg-success' }}">{{ label }}</span>
+{%- endmacro %}
