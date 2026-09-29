@@ -9,6 +9,7 @@ from .config import ensure_secret_key, get_config
 from .errors import register_error_handlers
 from .extensions import db, login_manager, migrate
 from .logging_config import configure_logging
+from .metrics import init_metrics
 from .security import init_csrf
 
 __version__ = "0.1.0"
@@ -32,6 +33,7 @@ def create_app(config_name: str | None = None, overrides: dict | None = None) ->
     _init_login(app)
     init_csrf(app)
 
+    init_metrics(app)
     register_error_handlers(app)
     register_blueprints(app)
     _register_security_headers(app)
@@ -46,11 +48,13 @@ def create_app(config_name: str | None = None, overrides: dict | None = None) ->
 def register_blueprints(app: Flask) -> None:
     from .auth import bp as auth_bp
     from .main import bp as main_bp
+    from .ops import bp as ops_bp
     from .scans import bp as scans_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(scans_bp)
+    app.register_blueprint(ops_bp)
 
 
 def _init_login(app: Flask) -> None:
