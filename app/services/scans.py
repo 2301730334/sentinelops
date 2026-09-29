@@ -12,6 +12,7 @@ from werkzeug.utils import secure_filename
 
 from ..errors import AppError, ValidationError
 from ..extensions import db
+from ..metrics import record_scan
 from ..ml import LABELS, MALICIOUS, get_predictor
 from ..models import Scan, ScanResult, ScanStatus, User
 from .csv_parser import check_extension, parse_connections
@@ -79,11 +80,13 @@ def create_scan(user: User, upload: FileStorage | None, name: str | None = None,
         scan.status = ScanStatus.FAILED
         scan.error_message = getattr(exc, "message", None) or "Prediction failed; see server logs."
     db.session.commit()
+    elapsed = time.perf_counter() - started
+    record_scan(scan.status, scan.malicious_count, scan.benign_count, elapsed)
 
     log.info("scan_created", extra={
         "scan_id": scan.id, "user_id": user.id, "rows": scan.total_rows,
         "malicious": scan.malicious_count, "status": scan.status,
-        "predict_ms": round((time.perf_counter() - started) * 1000, 2),
+        "predict_ms": round(elapsed * 1000, 2),
     })
     return scan
 
