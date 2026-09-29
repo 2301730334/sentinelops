@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Environment / secrets (never commit real values; see .env.example)
+.env
+.env.*
+!.env.example
+
+# Local data
+instance/
+*.db
+*.sqlite3
+uploads/
+
+# ML artifacts: only the shipped model is tracked
+models/*.joblib
+!models/model.joblib
+
+# Test / coverage output
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+reports/
+
+# Tooling
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Infra (later phases)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.retry
