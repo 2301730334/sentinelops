@@ -73,3 +73,9 @@ def upload(client, data=None, filename="traffic.csv", url="/scans/upload", **fie
 
     payload = {"file": (io.BytesIO(make_csv() if data is None else data), filename), **fields}
     return client.post(url, data=payload, content_type="multipart/form-data")
+
+
+@pytest.fixture()
+def api_headers(client, user):
+    resp = client.post("/api/v1/auth/token", json={"username": "alice", "password": PASSWORD})
+    return {"Authorization": f"Bearer {resp.get_json()['access_token']}"}
