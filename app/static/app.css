@@ -1,0 +1,4 @@
+.stat-card .display-6 { font-variant-numeric: tabular-nums; }
+.table-results td, .table-results th { white-space: nowrap; }
+.badge-malicious { background-color: var(--bs-danger); }
+.badge-benign { background-color: var(--bs-success); }

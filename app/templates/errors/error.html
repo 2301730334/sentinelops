@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="py-5 text-center">
+  <p class="display-3 fw-bold text-body-tertiary mb-0">{{ status }}</p>
+  <h1 class="h3">{{ title }}</h1>
+  <p class="text-body-secondary">{{ message }}</p>
+  {% if details and details.errors %}
+  <ul class="list-unstyled small text-danger">
+    {% for e in details.errors %}<li>{{ e }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+  <a href="{{ url_for('main.index') }}" class="btn btn-primary mt-2">Back to home</a>
+</div>
+{% endblock %}
