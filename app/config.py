@@ -71,6 +71,7 @@ class Config:
 
     # Security
     CSRF_ENABLED = True
+    PASSWORD_HASH_METHOD = "scrypt"
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SECURE = _env_bool("SESSION_COOKIE_SECURE", False)
@@ -94,6 +95,8 @@ class TestingConfig(Config):
     MAX_CSV_ROWS = 500
     MAX_CONTENT_LENGTH = 1 * 1024 * 1024
     LOG_LEVEL = "WARNING"
+    # Fast hashing keeps the test suite quick; never use this outside tests.
+    PASSWORD_HASH_METHOD = "pbkdf2:sha256:1000"
 
 
 class ProductionConfig(Config):
