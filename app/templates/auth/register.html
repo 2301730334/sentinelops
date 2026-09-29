@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% from "auth/_field.html" import field %}
+{% block title %}Create account{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-sm-10 col-md-6 col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-3">Create an account</h1>
+        <form method="post" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          {{ field("username", "Username", value=form.get("username", ""), errors=errors, autocomplete="username") }}
+          {{ field("email", "Email", type="email", value=form.get("email", ""), errors=errors, autocomplete="email") }}
+          {{ field("password", "Password", type="password", errors=errors, autocomplete="new-password") }}
+          {{ field("confirm", "Confirm password", type="password", errors=errors, autocomplete="new-password") }}
+          <button class="btn btn-primary w-100" type="submit">Create account</button>
+        </form>
+      </div>
+    </div>
+    <p class="text-center mt-3 small">Already registered? <a href="{{ url_for('auth.login') }}">Sign in</a></p>
+  </div>
+</div>
+{% endblock %}

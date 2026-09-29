@@ -20,7 +20,20 @@
       </button>
       <div class="collapse navbar-collapse" id="nav">
         <ul class="navbar-nav ms-auto">
-          {% block nav_items %}{% endblock %}
+          {% block nav_items %}
+          {% if current_user.is_authenticated %}
+          <li class="nav-item"><span class="navbar-text me-3 small">Signed in as <strong>{{ current_user.username }}</strong></span></li>
+          <li class="nav-item">
+            <form method="post" action="{{ url_for('auth.logout') }}" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-outline-light btn-sm mt-1" type="submit">Sign out</button>
+            </form>
+          </li>
+          {% else %}
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Sign in</a></li>
+          <li class="nav-item"><a class="btn btn-primary btn-sm ms-md-2 mt-1" href="{{ url_for('auth.register') }}">Register</a></li>
+          {% endif %}
+          {% endblock %}
         </ul>
       </div>
     </div>
