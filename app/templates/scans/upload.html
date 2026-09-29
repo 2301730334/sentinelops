@@ -4,10 +4,9 @@
 <div class="row justify-content-center">
   <div class="col-lg-8">
     <h1 class="h3 mb-3">New scan</h1>
-    {% if error and error.details %}
+    {% if error and error.details and error.details.errors %}
     <div class="alert alert-danger small">
-      {% if error.details.missing_columns %}Missing columns: <code>{{ error.details.missing_columns|join(", ") }}</code>{% endif %}
-      {% if error.details.errors %}<ul class="mb-0">{% for e in error.details.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      <ul class="mb-0">{% for e in error.details.errors %}<li>{{ e }}</li>{% endfor %}</ul>
     </div>
     {% endif %}
     <div class="card shadow-sm">
