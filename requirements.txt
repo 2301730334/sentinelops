@@ -11,7 +11,8 @@ python-dotenv==1.2.2
 
 # Production server + PostgreSQL driver (Docker / Kubernetes)
 gunicorn==26.2.0
-psycopg2-binary==2.9.13
+psycopg[binary]==3.3.6
+psycopg-binary==3.3.6
 
 # ML
 numpy==2.4.4
