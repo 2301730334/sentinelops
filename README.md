@@ -9,7 +9,7 @@ The app is deliberately small. Most of the project lives in the DevOps pipeline
 built around it (Jenkins, Docker, Kubernetes, Ansible, Terraform, Prometheus/Grafana,
 ELK, SonarQube, ArgoCD).
 
-> **Status:** Phase 1 (application + repository foundation) complete. See the [roadmap](#roadmap).
+> **Status:** Phase 1 (application) and Phase 2 (Docker, Docker Compose, Jenkins CI) complete. See the [roadmap](#roadmap).
 
 ![Scan detail](docs/screenshots/scan-detail.png)
 
@@ -28,7 +28,7 @@ ELK, SonarQube, ArgoCD).
 
 ## Quick start (local)
 
-Requirements: **Python 3.11+** and git.
+Requirements: **Python 3.11+** and git. To run everything in containers instead, see [Run with Docker Compose](#run-with-docker-compose-app--postgresql).
 
 ```bash
 git clone https://github.com/<your-org>/sentinelops.git
@@ -52,6 +52,48 @@ Register an account, click **New scan**, and upload
 For auto-reload while developing, run `flask run --debug`. Set `DEBUG_METRICS=1`
 (already in `.env.example`) to keep `/metrics` available in debug mode.
 
+## Run with Docker Compose (app + PostgreSQL)
+
+Requirements: Docker Desktop (Windows/macOS) or Docker Engine + Compose v2.
+
+```bash
+cp .env.example .env     # Windows: copy .env.example .env
+# edit .env: set SECRET_KEY and POSTGRES_PASSWORD (letters and digits only)
+docker compose up -d --build
+docker compose ps        # app should be "healthy"
+```
+
+Open http://localhost:8000. Useful commands:
+
+```bash
+docker compose logs -f app                     # JSON logs
+curl http://localhost:8000/readyz              # DB + model check
+docker compose exec db psql -U sentinel -d sentinelops -c "select count(*) from scans;"
+docker compose down                            # stop (data kept in the pgdata volume)
+docker compose down -v                         # stop and delete the database
+```
+
+What's inside:
+
+| Piece | Details |
+|---|---|
+| `Dockerfile` | Multi-stage build on `python:3.11-slim`, dependencies in a virtualenv, no build tools in the final image, runs as non-root UID 10001, `HEALTHCHECK` on `/healthz`, OCI labels with version and git SHA |
+| `docker/entrypoint.sh` | Runs `flask db upgrade` (with retries) and then starts gunicorn. `RUN_MIGRATIONS=false` disables it |
+| `docker/gunicorn.conf.py` | 1 process × 4 threads (`gthread`), JSON logs, env-tunable. Scale with more containers/pods so each one exposes its own `/metrics` |
+| `docker-compose.yml` | `app` + `postgres:16-alpine` with healthchecks and `depends_on: service_healthy`, named volume, DB not exposed to the host, app container read-only with all capabilities dropped and `no-new-privileges` |
+
+## Continuous integration (Jenkins)
+
+`Jenkinsfile` defines the pipeline: **Checkout → Install → Test (JUnit + coverage) →
+Build image → Smoke test → Package → Push to Docker Hub** (main/develop). Jenkins
+itself runs in Docker and is configured as code. A multibranch job builds every
+push to every branch. Setup steps are in [jenkins/README.md](jenkins/README.md):
+
+```bash
+cd jenkins && cp .env.example .env   # set JENKINS_ADMIN_PASSWORD
+docker compose up -d --build         # http://localhost:8080
+```
+
 ## Configuration
 
 All configuration comes from environment variables (or `.env` for local dev).
@@ -70,7 +112,10 @@ There are no secrets in the code.
 | `API_TOKEN_TTL_SECONDS` | `3600` | Bearer-token lifetime |
 | `LOG_LEVEL` | `INFO` | Root log level |
 | `SESSION_COOKIE_SECURE` | `false` (`true` in production) | Send cookies only over HTTPS |
-| `APP_VERSION` | package version | Reported by `/healthz` and in metrics (CI can inject the git SHA) |
+| `APP_VERSION` | package version | Reported by `/healthz` and in metrics (the image build sets it to the git SHA) |
+| `RUN_MIGRATIONS` | `true` | Container only: run `flask db upgrade` before starting |
+| `GUNICORN_WORKERS` / `GUNICORN_THREADS` | `1` / `4` | Container only: gunicorn processes and threads |
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `sentinel` / – / `sentinelops` | Docker Compose database settings |
 
 ## Running the tests
 
@@ -185,7 +230,9 @@ migrations/          Alembic migrations (Flask-Migrate)
 models/              model.joblib + model contract
 scripts/             stub-model trainer
 tests/               pytest suite
-docker/ k8s/ ansible/ terraform/ monitoring/ jenkins/   later phases
+Dockerfile, docker-compose.yml, docker/   container image + local stack (Phase 2)
+Jenkinsfile, jenkins/                     CI pipeline + Jenkins-in-Docker (Phase 2)
+k8s/ ansible/ terraform/ monitoring/      later phases
 docs/                API reference, git workflow, screenshots
 ```
 
@@ -201,8 +248,8 @@ git log --oneline --graph --all
 
 ## Roadmap
 
-1. ✅ Git/GitHub + application (this release, `v0.1.0`)
-2. Jenkins CI (build, test, package on every push) + Dockerfile + Docker Compose (Flask + PostgreSQL)
+1. ✅ Git/GitHub + application (`v0.1.0`)
+2. ✅ Jenkins CI (build, test, package on every push) + Dockerfile + Docker Compose (Flask + PostgreSQL) (`v0.2.0`)
 3. Kubernetes (Deployment, Service, ConfigMap, Secret, PV; scaling, rolling update, rollback) + Ansible
 4. Terraform (variables, outputs, modules) + Prometheus/Grafana
 5. ELK/Fluentd logging, SonarQube, secret management, image hardening, RBAC
