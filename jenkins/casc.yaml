@@ -1,0 +1,72 @@
+# Jenkins Configuration-as-Code: the whole CI server is defined here.
+# Secrets come from environment variables (jenkins/.env), never from this file.
+jenkins:
+  systemMessage: "SentinelOps CI - configured as code (jenkins/casc.yaml)"
+  numExecutors: 2
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "${JENKINS_ADMIN_ID}"
+          password: "${JENKINS_ADMIN_PASSWORD}"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+  globalNodeProperties:
+    - envVars:
+        env:
+          - key: "DOCKERHUB_NAMESPACE"
+            value: "${DOCKERHUB_USERNAME:-}"
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - usernamePassword:
+              scope: GLOBAL
+              id: "dockerhub"
+              description: "Docker Hub access token (from jenkins/.env)"
+              username: "${DOCKERHUB_USERNAME:-not-set}"
+              password: "${DOCKERHUB_TOKEN:-not-set}"
+
+unclassified:
+  location:
+    url: "http://localhost:8080/"
+
+# Multibranch pipeline: every branch with a Jenkinsfile gets its own job.
+# Branches are re-scanned every 2 minutes, so each push is built automatically
+# (GitHub webhooks cannot reach a laptop without a tunnel; see jenkins/README.md).
+jobs:
+  - script: |
+      multibranchPipelineJob('sentinelops') {
+        displayName('SentinelOps')
+        description('CI pipeline for ${REPO_URL}')
+        branchSources {
+          branchSource {
+            source {
+              git {
+                id('sentinelops-git')
+                remote('${REPO_URL}')
+                traits {
+                  gitBranchDiscovery()
+                }
+              }
+            }
+          }
+        }
+        triggers {
+          periodicFolderTrigger {
+            interval('2m')
+          }
+        }
+        orphanedItemStrategy {
+          discardOldItems {
+            numToKeep(20)
+          }
+        }
+        factory {
+          workflowBranchProjectFactory {
+            scriptPath('Jenkinsfile')
+          }
+        }
+      }

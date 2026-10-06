@@ -1,0 +1,52 @@
+# Jenkins CI server for SentinelOps, following the official "Jenkins in Docker"
+# setup: a Jenkins controller plus a Docker-in-Docker engine for building images.
+#
+#   cd jenkins
+#   cp .env.example .env        # set the admin password (and Docker Hub token)
+#   docker compose up -d --build
+#   open http://localhost:8080
+name: sentinelops-ci
+
+services:
+  docker:
+    image: docker:29-dind
+    privileged: true        # required by Docker-in-Docker
+    environment:
+      DOCKER_TLS_CERTDIR: /certs
+    volumes:
+      - docker-certs:/certs/client
+      - jenkins-home:/var/jenkins_home
+      - dind-data:/var/lib/docker
+    networks:
+      ci:
+        aliases: [docker]
+    restart: unless-stopped
+
+  jenkins:
+    build: .
+    image: sentinelops-jenkins:local
+    depends_on: [docker]
+    environment:
+      DOCKER_HOST: tcp://docker:2376
+      DOCKER_CERT_PATH: /certs/client
+      DOCKER_TLS_VERIFY: "1"
+      JENKINS_ADMIN_ID: ${JENKINS_ADMIN_ID:-admin}
+      JENKINS_ADMIN_PASSWORD: ${JENKINS_ADMIN_PASSWORD:?Set JENKINS_ADMIN_PASSWORD in jenkins/.env}
+      DOCKERHUB_USERNAME: ${DOCKERHUB_USERNAME:-}
+      DOCKERHUB_TOKEN: ${DOCKERHUB_TOKEN:-}
+      REPO_URL: ${REPO_URL:-https://github.com/2301730334/sentinelops.git}
+    ports:
+      - "8080:8080"
+    volumes:
+      - jenkins-home:/var/jenkins_home
+      - docker-certs:/certs/client:ro
+    networks: [ci]
+    restart: unless-stopped
+
+volumes:
+  jenkins-home:
+  docker-certs:
+  dind-data:
+
+networks:
+  ci:
