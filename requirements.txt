@@ -9,6 +9,11 @@ alembic==1.20.0
 Flask-Login==0.6.3
 python-dotenv==1.2.2
 
+# Production server + PostgreSQL driver (Docker / Kubernetes)
+gunicorn==26.2.0
+psycopg[binary]==3.3.6
+psycopg-binary==3.3.6
+
 # ML
 numpy==2.4.4
 scipy==1.17.1

@@ -1,0 +1,16 @@
+# Keep Unix line endings for files that run inside Linux containers / Jenkins,
+# even when the repo is checked out on Windows (core.autocrlf=true).
+* text=auto
+*.sh text eol=lf
+*.py text eol=lf
+Dockerfile text eol=lf
+Jenkinsfile text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.txt text eol=lf
+*.cfg text eol=lf
+*.ini text eol=lf
+
+*.png binary
+*.joblib binary
+*.bundle binary
